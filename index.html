@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>3DVR Shared Notes</title>
+  <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+  <style>
+    body { font-family: sans-serif; background: #eef; padding: 20px; }
+    h1 { text-align: center; }
+    #notes { margin-top: 20px; }
+    .note { background: #fff; padding: 10px; margin-bottom: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
+    input, button { padding: 10px; font-size: 16px; }
+    #new-note { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <h1>3DVR Shared Notes</h1>
+
+  <div id="new-note">
+    <input type="text" id="note-input" placeholder="Type your note..." />
+    <button onclick="addNote()">Add Note</button>
+  </div>
+
+  <div id="notes"></div>
+
+  <script>
+    // Connect to Gun
+    const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']); // free relay server for testing
+    const notes = gun.get('3dvr-notes');
+
+    // Add a note
+    function addNote() {
+      const text = document.getElementById('note-input').value.trim();
+      if (!text) return;
+      notes.set({ text, createdAt: Date.now() });
+      document.getElementById('note-input').value = '';
+    }
+
+    // Listen for notes
+    notes.map().on((note, id) => {
+      if (!note) return; // deleted or null
+      if (document.getElementById(id)) return; // already exists
+
+      const noteDiv = document.createElement('div');
+      noteDiv.className = 'note';
+      noteDiv.id = id;
+      noteDiv.textContent = note.text;
+      document.getElementById('notes').appendChild(noteDiv);
+    });
+  </script>
+
+</body>
+</html>
